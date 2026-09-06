@@ -1,0 +1,30 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: olcs-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: olcs
+      POSTGRES_PASSWORD: olcs_password
+      POSTGRES_DB: olcs
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - olcs_postgres:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U olcs -d olcs"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  olcs_postgres:
