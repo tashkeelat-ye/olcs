@@ -22,12 +22,21 @@ import {
   SmsModule,
 } from './sms/sms.module';
 
+import {
+  HealthController,
+} from './health.controller';
+
 @Module({
+
   imports: [
     AuthModule,
     DevicesModule,
     LocationsModule,
     SmsModule,
+  ],
+
+  controllers: [
+    HealthController,
   ],
 
   providers: [
