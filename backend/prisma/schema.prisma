@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Device {
+  id            String   @id
+  name          String
+  phoneNumber   String?
+  apiKey        String   @unique
+  smsSecret     String
+  active        Boolean  @default(true)
+
+  lastLatitude  Float?
+  lastLongitude Float?
+  lastAccuracy  Float?
+  lastSeenAt    DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  locations     Location[]
+
+  @@index([active])
+}
+
+model Location {
+  id         String   @id
+  deviceId   String
+
+  latitude   Float
+  longitude  Float
+  accuracy   Float?
+  altitude   Float?
+  speed      Float?
+  bearing    Float?
+
+  capturedAt DateTime
+  receivedAt DateTime @default(now())
+
+  transport  String?
+
+  device     Device @relation(
+    fields: [deviceId],
+    references: [id],
+    onDelete: Cascade
+  )
+
+  @@unique([deviceId, id])
+  @@index([deviceId, capturedAt])
+}
