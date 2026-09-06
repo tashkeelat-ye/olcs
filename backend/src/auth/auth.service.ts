@@ -1,15 +1,20 @@
 import {
   Injectable,
   UnauthorizedException,
+  InternalServerErrorException,
 } from '@nestjs/common';
-
-import * as bcrypt from 'bcrypt';
-
-import * as jwt from 'jsonwebtoken';
 
 import {
   PrismaService,
 } from '../prisma.service';
+
+import {
+  compare,
+} from 'bcrypt';
+
+import {
+  sign,
+} from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +29,15 @@ export class AuthService {
     password: string,
   ) {
 
+    const jwtSecret =
+      process.env.JWT_SECRET;
+
+    if (!jwtSecret) {
+      throw new InternalServerErrorException(
+        'JWT_SECRET is not configured',
+      );
+    }
+
     const user =
       await this.prisma.user.findUnique({
         where: {
@@ -33,39 +47,36 @@ export class AuthService {
 
     if (!user) {
       throw new UnauthorizedException(
-        'Invalid credentials'
+        'Invalid email or password',
       );
     }
 
     const valid =
-      await bcrypt.compare(
+      await compare(
         password,
         user.passwordHash,
       );
 
     if (!valid) {
       throw new UnauthorizedException(
-        'Invalid credentials'
+        'Invalid email or password',
       );
     }
 
-    const token =
-      jwt.sign(
+    const accessToken =
+      sign(
         {
           sub: user.id,
           email: user.email,
         },
-
-        process.env.JWT_SECRET ||
-          'development-secret',
-
+        jwtSecret,
         {
           expiresIn: '7d',
-        }
+        },
       );
 
     return {
-      accessToken: token,
+      accessToken,
 
       user: {
         id: user.id,
