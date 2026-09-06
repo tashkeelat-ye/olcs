@@ -4,13 +4,19 @@ import {
   Get,
   Param,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 
 import {
   DevicesService,
 } from './devices.service';
 
+import {
+  JwtAuthGuard,
+} from '../auth/jwt-auth.guard';
+
 @Controller('v1/devices')
+@UseGuards(JwtAuthGuard)
 export class DevicesController {
 
   constructor(
@@ -39,7 +45,6 @@ export class DevicesController {
       phoneNumber?: string;
     },
   ) {
-
     return this.devices.create(
       body.name,
       body.phoneNumber,
